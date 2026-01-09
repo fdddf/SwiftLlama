@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		164F8A0D2F10C1BD00D8B49E /* SwiftLlama in Frameworks */ = {isa = PBXBuildFile; productRef = 164F8A0C2F10C1BD00D8B49E /* SwiftLlama */; };
 		4B0B057A2BE5C451002BC7AF /* TestApp_MacosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0B05792BE5C451002BC7AF /* TestApp_MacosApp.swift */; };
 		4B0B057E2BE5C452002BC7AF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4B0B057D2BE5C452002BC7AF /* Assets.xcassets */; };
 		4B0B05812BE5C452002BC7AF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4B0B05802BE5C452002BC7AF /* Preview Assets.xcassets */; };
@@ -22,7 +23,6 @@
 		4BB1E3E52BE646CF00F1D21A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B1334F92BE5C4AC0020AB8E /* ContentView.swift */; };
 		4BB1E3E62BE646CF00F1D21A /* ViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B1334F52BE5C4AC0020AB8E /* ViewModel.swift */; };
 		4BEE1DB62BE70024001CE949 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BEE1DB52BE70024001CE949 /* main.swift */; };
-		4BEE1DBB2BE7003E001CE949 /* SwiftLlama in Frameworks */ = {isa = PBXBuildFile; productRef = 4BEE1DBA2BE7003E001CE949 /* SwiftLlama */; };
 		863E28422E54EC6900DF0B0D /* Llama-3.2-1B-Instruct.Q3_K_S.gguf in Resources */ = {isa = PBXBuildFile; fileRef = 863E28412E54EC6900DF0B0D /* Llama-3.2-1B-Instruct.Q3_K_S.gguf */; };
 		863E28432E54EC6900DF0B0D /* Llama-3.2-1B-Instruct.Q3_K_S.gguf in Resources */ = {isa = PBXBuildFile; fileRef = 863E28412E54EC6900DF0B0D /* Llama-3.2-1B-Instruct.Q3_K_S.gguf */; };
 		866F6EF22E5527B300698A28 /* Llama-3.2-3B-Instruct-Q4_K_L.gguf in Resources */ = {isa = PBXBuildFile; fileRef = 866F6EF12E5527B300698A28 /* Llama-3.2-3B-Instruct-Q4_K_L.gguf */; };
@@ -82,13 +82,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4BEE1DBB2BE7003E001CE949 /* SwiftLlama in Frameworks */,
+				164F8A0D2F10C1BD00D8B49E /* SwiftLlama in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		164F8A0B2F10C1B500D8B49E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		4B0B05512BE5B44E002BC7AF = {
 			isa = PBXGroup;
 			children = (
@@ -97,6 +104,7 @@
 				4B1334F32BE5C4AC0020AB8E /* TestApp-iOS */,
 				4B0B05782BE5C451002BC7AF /* TestApp-Macos */,
 				4BEE1DB42BE70024001CE949 /* TestApp-Commandline */,
+				164F8A0B2F10C1B500D8B49E /* Frameworks */,
 				4B0B055B2BE5B44E002BC7AF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -234,7 +242,7 @@
 			);
 			name = swiftllama;
 			packageProductDependencies = (
-				4BEE1DBA2BE7003E001CE949 /* SwiftLlama */,
+				164F8A0C2F10C1BD00D8B49E /* SwiftLlama */,
 			);
 			productName = "TestApp-Commandline";
 			productReference = 4BEE1DB32BE70024001CE949 /* swiftllama */;
@@ -248,7 +256,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1520;
-				LastUpgradeCheck = 1520;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					4B0B05592BE5B44E002BC7AF = {
 						CreatedOnToolsVersion = 15.2;
@@ -271,7 +279,7 @@
 			);
 			mainGroup = 4B0B05512BE5B44E002BC7AF;
 			packageReferences = (
-				4B1335012BE5C58A0020AB8E /* XCLocalSwiftPackageReference ".." */,
+				164F899D2F10BBDF00D8B49E /* XCLocalSwiftPackageReference "../../SwiftLlama" */,
 			);
 			productRefGroup = 4B0B055B2BE5B44E002BC7AF /* Products */;
 			projectDirPath = "";
@@ -378,6 +386,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = TA9XK586TE;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -401,6 +410,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -441,6 +451,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = TA9XK586TE;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -457,6 +468,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -470,7 +482,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TestApp-iOS/Preview Content\"";
-				DEVELOPMENT_TEAM = 59Q22VRDBY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -499,7 +510,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TestApp-iOS/Preview Content\"";
-				DEVELOPMENT_TEAM = 59Q22VRDBY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -529,17 +539,19 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"TestApp-Macos/Preview Content\"";
-				DEVELOPMENT_TEAM = 96737BLUB5;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "test.tim.TestApp-Macos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -558,17 +570,19 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"TestApp-Macos/Preview Content\"";
-				DEVELOPMENT_TEAM = 96737BLUB5;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "test.tim.TestApp-Macos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -582,9 +596,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 59Q22VRDBY;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.0;
@@ -595,9 +609,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 59Q22VRDBY;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.0;
@@ -646,22 +660,23 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		4B1335012BE5C58A0020AB8E /* XCLocalSwiftPackageReference ".." */ = {
+		164F899D2F10BBDF00D8B49E /* XCLocalSwiftPackageReference "../../SwiftLlama" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ..;
+			relativePath = ../../SwiftLlama;
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		164F8A0C2F10C1BD00D8B49E /* SwiftLlama */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 164F899D2F10BBDF00D8B49E /* XCLocalSwiftPackageReference "../../SwiftLlama" */;
+			productName = SwiftLlama;
+		};
 		4BB1E3E02BE6464F00F1D21A /* SwiftLlama */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SwiftLlama;
 		};
 		4BB1E3E22BE6466A00F1D21A /* SwiftLlama */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = SwiftLlama;
-		};
-		4BEE1DBA2BE7003E001CE949 /* SwiftLlama */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SwiftLlama;
 		};

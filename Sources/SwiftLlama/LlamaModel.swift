@@ -3,6 +3,7 @@ import llama
 
 class LlamaModel {
     private let model: Model
+    private let vocab: Vocab
     private let configuration: Configuration
     private let context: OpaquePointer
     private let sampler: UnsafeMutablePointer<llama_sampler>
@@ -26,12 +27,17 @@ class LlamaModel {
         model_params.n_gpu_layers = 0
         #endif
 
-        guard let model = llama_load_model_from_file(path, model_params) else {
+        guard let model = llama_model_load_from_file(path, model_params) else {
             throw SwiftLlamaError.others("Cannot load model at path \(path)")
         }
         self.model = model
 
-        guard let context = llama_new_context_with_model(model, configuration.contextParameters) else {
+        guard let vocab = llama_model_get_vocab(model) else {
+            throw SwiftLlamaError.others("Cannot read model vocabulary")
+        }
+        self.vocab = vocab
+
+        guard let context = llama_init_from_model(model, configuration.contextParameters) else {
             throw SwiftLlamaError.others("Cannot load model context")
         }
         self.context = context
@@ -41,7 +47,6 @@ class LlamaModel {
 
         self.sampler = llama_sampler_chain_init(llama_sampler_chain_default_params())
         llama_sampler_chain_add(sampler, llama_sampler_init_temp(configuration.temperature))
-        llama_sampler_chain_add(sampler, llama_sampler_init_softmax())
         llama_sampler_chain_add(sampler, llama_sampler_init_dist(1234))
 
         try checkContextLength(context: context, model: model)
@@ -49,7 +54,7 @@ class LlamaModel {
 
     private func checkContextLength(context: Context, model: Model) throws {
         let n_ctx = llama_n_ctx(context)
-        let n_ctx_train = llama_n_ctx_train(model)
+        let n_ctx_train = llama_model_n_ctx_train(model)
         if n_ctx > n_ctx_train {
             throw SwiftLlamaError.others("Model was trained on \(n_ctx_train) context but tokens \(n_ctx) specified")
         }
@@ -74,7 +79,7 @@ class LlamaModel {
     func `continue`() throws -> String {
         let newToken = llama_sampler_sample(sampler, context, batch.n_tokens - 1)
 
-        if llama_token_is_eog(model, newToken) || generatedTokenAccount == n_len {
+        if llama_vocab_is_eog(vocab, newToken) || generatedTokenAccount == n_len {
             ended = true
             return ""
         }
@@ -99,10 +104,9 @@ class LlamaModel {
         var buf = [CChar](repeating: 0, count: Int(cap))
 
         // First attempt
-        var written = buf.withUnsafeMutableBufferPointer { p -> Int32 in
+        var written: Int32 = buf.withUnsafeMutableBufferPointer { p in
             guard let base = p.baseAddress else { return 0 }
-            // Use the signature your llama module exposes (this matches your previous use: 6 args)
-            return llama_token_to_piece(model, token, base, cap, 0, false)
+            return Int32(llama_token_to_piece(vocab, token, base, cap, 0, false))
         }
 
         // If negative, allocate required size and retry
@@ -111,7 +115,7 @@ class LlamaModel {
             buf = [CChar](repeating: 0, count: Int(cap))
             written = buf.withUnsafeMutableBufferPointer { p -> Int32 in
                 guard let base = p.baseAddress else { return 0 }
-                return llama_token_to_piece(model, token, base, cap, 0, false)
+                return Int32(llama_token_to_piece(vocab, token, base, cap, 0, false))
             }
         }
 
@@ -129,20 +133,22 @@ class LlamaModel {
 
         return Array(unsafeUninitializedCapacity: n_tokens) { buffer, initializedCount in
             initializedCount = Int(
-                llama_tokenize(model, text, Int32(utf8Count), buffer.baseAddress, Int32(n_tokens), addBos, false)
+                llama_tokenize(vocab, text, Int32(utf8Count), buffer.baseAddress, Int32(n_tokens), addBos, false)
             )
         }
     }
 
     func clear() {
         tokens.removeAll()
-        llama_kv_cache_clear(context)
+        if let mem = llama_get_memory(context) {
+            llama_memory_clear(mem, true)
+        }
     }
 
     deinit {
         llama_batch_free(batch)
         llama_free(context)
-        llama_free_model(model)
+        llama_model_free(model)
         llama_backend_free()
     }
 }

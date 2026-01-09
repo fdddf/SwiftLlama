@@ -29,7 +29,6 @@ def main() -> int:
     if not package_file.is_file():
         print(f"error: {package_file} not found", file=sys.stderr)
         return 1
-    resolved_file = package_file.parent / "Package.resolved"
 
     repo_data = get_json(f"https://api.github.com/repos/{REPO}")
     default_branch = repo_data["default_branch"]
@@ -89,27 +88,6 @@ def main() -> int:
         print(f"- LlamaFramework url: {asset_url}")
         print(f"- LlamaFramework checksum: {checksum}")
 
-    if resolved_file.is_file():
-        resolved_text = resolved_file.read_text()
-        resolved = json.loads(resolved_text)
-        updated_resolved = False
-        for pin in resolved.get("pins", []):
-            if pin.get("identity") == "llama.cpp":
-                state = pin.get("state", {})
-                if state.get("branch") != default_branch:
-                    state["branch"] = default_branch
-                    updated_resolved = True
-                if state.get("revision") != latest_sha:
-                    state["revision"] = latest_sha
-                    updated_resolved = True
-                pin["state"] = state
-        if updated_resolved:
-            resolved_file.write_text(
-                json.dumps(resolved, indent=2, separators=(",", " : ")) + "\n"
-            )
-            print(f"Updated {resolved_file}")
-        else:
-            print(f"{resolved_file} already up to date")
     return 0
 
 
