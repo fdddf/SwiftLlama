@@ -40,9 +40,9 @@ extension Configuration {
         var params = llama_context_default_params()
         let processorCount = max(1, min(16, ProcessInfo.processInfo.processorCount - 2))
         params.n_ctx = max(8, UInt32(self.nCTX)) // minimum context size is 8
+        params.n_batch = UInt32(min(self.batchSize, self.nCTX))
         params.n_threads = Int32(processorCount)
         params.n_threads_batch = Int32(processorCount)
-//        params.
         return params
     }
 }
