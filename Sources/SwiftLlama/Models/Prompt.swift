@@ -2,6 +2,7 @@ import Foundation
 
 public struct Prompt {
     public enum `Type` {
+        case raw
         case chatML
         case alpaca
         case llama
@@ -28,6 +29,7 @@ public struct Prompt {
 
     var prompt: String {
         switch type {
+        case .raw: userMessage
         case .llama: encodeLlamaPrompt()
         case .llama3: encodeLlama3Prompt()
         case .alpaca: encodeAlpacaPrompt()

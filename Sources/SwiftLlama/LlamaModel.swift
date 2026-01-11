@@ -11,7 +11,6 @@ class LlamaModel {
     private var tokens: [Token]
     private var generatedTokenAccount: Int32 = 0
     private var ended = false
-    private let n_len: Int32 = 1024
 
     var shouldContinue: Bool {
         generatedTokenAccount < configuration.maxTokenCount && !ended
@@ -46,8 +45,43 @@ class LlamaModel {
         self.batch = llama_batch_init(Int32(configuration.batchSize * Configuration.historySize * 2), 0, 1)
 
         self.sampler = llama_sampler_chain_init(llama_sampler_chain_default_params())
-        llama_sampler_chain_add(sampler, llama_sampler_init_temp(configuration.temperature))
-        llama_sampler_chain_add(sampler, llama_sampler_init_dist(1234))
+//        llama_sampler_chain_add(sampler, llama_sampler_init_temp(configuration.temperature))
+//        llama_sampler_chain_add(sampler, llama_sampler_init_dist(1234))
+        
+        // Repetition penalty
+        llama_sampler_chain_add(
+            sampler,
+            llama_sampler_init_penalties(
+                Int32(64),                        // penalty_last_n
+                configuration.repeatPenalty,     // penalty_repeat (1.05)
+                0.0,                              // penalty_freq
+                0.0                               // penalty_present
+            )
+        )
+
+        // Top-K
+        llama_sampler_chain_add(
+            sampler,
+            llama_sampler_init_top_k(Int32(configuration.topK))
+        )
+
+        // Top-P
+        llama_sampler_chain_add(
+            sampler,
+            llama_sampler_init_top_p(configuration.topP, 1)
+        )
+
+        // Temperature
+        llama_sampler_chain_add(
+            sampler,
+            llama_sampler_init_temp(configuration.temperature)
+        )
+
+        // RNG / distribution
+        llama_sampler_chain_add(
+            sampler,
+            llama_sampler_init_dist(UInt32(configuration.seed))
+        )
 
         try checkContextLength(context: context, model: model)
     }
@@ -79,7 +113,8 @@ class LlamaModel {
     func `continue`() throws -> String {
         let newToken = llama_sampler_sample(sampler, context, batch.n_tokens - 1)
 
-        if llama_vocab_is_eog(vocab, newToken) || generatedTokenAccount == n_len {
+        if llama_vocab_is_eog(vocab, newToken) ||
+           generatedTokenAccount >= configuration.maxTokenCount {
             ended = true
             return ""
         }

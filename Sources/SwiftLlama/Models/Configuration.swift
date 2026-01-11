@@ -11,6 +11,7 @@ public struct Configuration {
     public let maxTokenCount: Int
     public let batchSize: Int
     public let stopTokens: [String]
+    public let repeatPenalty: Float
 
     public init(seed: Int = 1234,
                 topK: Int = 40,
@@ -20,6 +21,7 @@ public struct Configuration {
                 batchSize: Int = 2048,
                 stopSequence: String? = nil,
                 maxTokenCount: Int = 1024,
+                repeatPenalty: Float = 1.0,
                 stopTokens: [String] = []) {
         self.seed = seed
         self.topK = topK
@@ -28,6 +30,7 @@ public struct Configuration {
         self.batchSize = batchSize
         self.temperature = temperature
         self.maxTokenCount = maxTokenCount
+        self.repeatPenalty = repeatPenalty
         self.stopTokens = stopTokens
     }
 }
@@ -39,6 +42,7 @@ extension Configuration {
         params.n_ctx = max(8, UInt32(self.nCTX)) // minimum context size is 8
         params.n_threads = Int32(processorCount)
         params.n_threads_batch = Int32(processorCount)
+//        params.
         return params
     }
 }
