@@ -12,6 +12,7 @@ public struct Configuration {
     public let batchSize: Int
     public let stopTokens: [String]
     public let repeatPenalty: Float
+    public let addBos: Bool
 
     public init(seed: Int = 1234,
                 topK: Int = 40,
@@ -22,6 +23,7 @@ public struct Configuration {
                 stopSequence: String? = nil,
                 maxTokenCount: Int = 1024,
                 repeatPenalty: Float = 1.0,
+                addBos: Bool = true,
                 stopTokens: [String] = []) {
         self.seed = seed
         self.topK = topK
@@ -32,6 +34,7 @@ public struct Configuration {
         self.maxTokenCount = maxTokenCount
         self.repeatPenalty = repeatPenalty
         self.stopTokens = stopTokens
+        self.addBos = addBos
     }
 }
 

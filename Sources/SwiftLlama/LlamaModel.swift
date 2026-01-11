@@ -94,7 +94,7 @@ class LlamaModel {
 
     func start(for prompt: Prompt) throws {
         ended = false
-        tokens = tokenize(text: prompt.prompt, addBos: true)
+        tokens = tokenize(text: prompt.prompt, addBos: configuration.addBos)
 
         batch.clear()
         tokens.enumerated().forEach { index, token in
