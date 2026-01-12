@@ -127,15 +127,29 @@ class LlamaModel {
 
     func start(for prompt: Prompt) throws {
         ended = false
-        tokens = tokenize(text: formatPromptWithModelTemplate(prompt: prompt), addBos: configuration.addBos)
-
+        
+        let formattedText = formatPromptWithModelTemplate(prompt: prompt)
+        
+        // Check if the formatted text is empty
+        guard !formattedText.isEmpty else {
+            throw SwiftLlamaError.others("Formatted prompt is empty")
+        }
+        
+        tokens = tokenize(text: formattedText, addBos: false)
+        
+        // Check if we have tokens
+        guard !tokens.isEmpty else {
+            throw SwiftLlamaError.others("No tokens generated from prompt")
+        }
+        
         batch.clear()
         tokens.enumerated().forEach { index, token in
             batch.add(token: token, position: Int32(index), seqIDs: [0], logit: false)
         }
         batch.logits[Int(batch.n_tokens) - 1] = 1 // true
-
-        if llama_decode(context, batch) != 0 {
+        
+        let decodeResult = llama_decode(context, batch)
+        if decodeResult != 0 {
             throw SwiftLlamaError.decodeError
         }
         generatedTokenAccount = batch.n_tokens
@@ -195,8 +209,8 @@ class LlamaModel {
 
     private func tokenize(text: String, addBos: Bool) -> [Token] {
         // The text parameter here is already formatted by the Prompt struct
-        // We can format it further using the model's chat template if available
-        let processedText = formatChatTemplateIfNeeded(text: text)
+        // Do not apply any further formatting or templating.
+        let processedText = text
         
         let utf8Count = processedText.utf8.count
         let n_tokens = utf8Count + (addBos ? 1 : 0) + 1
@@ -209,70 +223,111 @@ class LlamaModel {
     }
     
     private func formatPromptWithModelTemplate(prompt: Prompt) -> String {
-        // Get the model's default chat template by passing NULL as the name
-        // According to the header: if name is NULL, returns the default chat template
+        // Get the model's default chat template
         let templatePtr = llama_model_chat_template(model, nil)
-        
+
         guard let templatePtr = templatePtr else {
-            // If no template is available, fall back to the current prompt formatting
-            return prompt.prompt
-        }
-        
-        let templateString = String(cString: templatePtr)
-        
-        // Prepare the chat messages for the template based on the prompt data
-        var messages: [llama_chat_message] = []
-        
-        // Add system message if system prompt is not empty
-        if !prompt.systemPrompt.isEmpty {
-            messages.append(llama_chat_message(role: "system", content: prompt.systemPrompt))
-        }
-        
-        // Add conversation history
-        for chat in prompt.history.suffix(configuration.historySize) {
-            // We need to convert the Chat object to the appropriate format
-            // Chat struct has 'user' and 'bot' properties
-            messages.append(llama_chat_message(role: "user", content: chat.user))
-            if !chat.bot.isEmpty {
-                messages.append(llama_chat_message(role: "assistant", content: chat.bot))
+            // If no template is available, fallback to a basic format
+            if !prompt.systemPrompt.isEmpty {
+                return "<|system|>\n\(prompt.systemPrompt)\n<|user|>\n\(prompt.userMessage)\n<|assistant|>\n"
+            } else {
+                return "<|user|>\n\(prompt.userMessage)\n<|assistant|>\n"
             }
         }
-        
-        // Add the current user message
-        messages.append(llama_chat_message(role: "user", content: prompt.userMessage))
-        
-        // Calculate buffer size needed for the formatted result
-        // According to the llama.h documentation, we should allocate 2 * total characters of all messages
-        let totalCharCount = messages.reduce(0) { $0 + $1.content.utf8.count }
-        let estimatedSize = 2 * totalCharCount
-        
-        // Create a buffer for the formatted result
-        var buffer = [CChar](repeating: 0, count: estimatedSize)
-        
-        // Apply the chat template
-        let resultLength = llama_chat_apply_template(
-            templateString,
-            messages,
-            Int32(messages.count),  // n_msg: number of messages
-            false,  // add_ass: don't add assistant response
-            &buffer,
-            Int32(estimatedSize)
-        )
-        
-        // If the result is larger than our buffer, reallocate and try again
-        if resultLength > Int32(estimatedSize) {
-            buffer = [CChar](repeating: 0, count: Int(resultLength))
-            _ = llama_chat_apply_template(
-                templateString,
-                messages,
-                Int32(messages.count),  // n_msg: number of messages
-                false,  // add_ass: don't add assistant response
-                &buffer,
-                resultLength
+
+        let templateString = String(cString: templatePtr)
+
+        // We must keep all C strings alive for the duration of llama_chat_apply_template.
+        // Using String.cString(using:) returns temporary storage which becomes invalid.
+        var allocated: [UnsafeMutablePointer<CChar>] = []
+        func dupCString(_ s: String) -> UnsafePointer<CChar> {
+            let p = strdup(s)
+            allocated.append(p!)
+            return UnsafePointer(p!)
+        }
+        defer {
+            for p in allocated { free(p) }
+        }
+
+        // Prepare the chat messages for the template
+        var messages: [llama_chat_message] = []
+
+        // Add system message if system prompt is not empty
+        if !prompt.systemPrompt.isEmpty {
+            messages.append(
+                llama_chat_message(
+                    role: dupCString("system"),
+                    content: dupCString(prompt.systemPrompt)
+                )
             )
         }
-        
-        // Convert the result to a Swift string
+
+        // Add conversation history
+        for chat in prompt.history.suffix(configuration.historySize) {
+            // Add user message
+            messages.append(
+                llama_chat_message(
+                    role: dupCString("user"),
+                    content: dupCString(chat.user)
+                )
+            )
+
+            // Add assistant message if not empty
+            if !chat.bot.isEmpty {
+                messages.append(
+                    llama_chat_message(
+                        role: dupCString("assistant"),
+                        content: dupCString(chat.bot)
+                    )
+                )
+            }
+        }
+
+        // Add the current user message
+        messages.append(
+            llama_chat_message(
+                role: dupCString("user"),
+                content: dupCString(prompt.userMessage)
+            )
+        )
+
+        // Start with a reasonable default size
+        var buffer = [CChar](repeating: 0, count: 4096)
+
+        func applyTemplate(into out: inout [CChar]) -> Int32 {
+            let outCount = Int32(out.count)
+            return templateString.withCString { tmpl in
+                return messages.withUnsafeBufferPointer { msgs in
+                    return out.withUnsafeMutableBufferPointer { outBuf in
+                        guard let outBase = outBuf.baseAddress else { return 0 }
+                        return llama_chat_apply_template(
+                            tmpl,
+                            msgs.baseAddress,
+                            Int(Int32(msgs.count)),
+                            true,  // add_ass: add assistant prefix for the model to complete
+                            outBase,
+                            outCount
+                        )
+                    }
+                }
+            }
+        }
+
+        var resultLength = applyTemplate(into: &buffer)
+
+        // If llama returns <= 0, template application failed.
+        guard resultLength > 0 else {
+            return ""
+        }
+
+        // If the result doesn't fit, allocate exact required size (+1 for NUL) and retry.
+        if resultLength >= Int32(buffer.count) {
+            var largeBuffer = [CChar](repeating: 0, count: Int(resultLength) + 1)
+            resultLength = applyTemplate(into: &largeBuffer)
+            guard resultLength > 0 else { return "" }
+            return String(cString: largeBuffer)
+        }
+
         return String(cString: buffer)
     }
     

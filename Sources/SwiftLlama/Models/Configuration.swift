@@ -2,7 +2,7 @@ import Foundation
 import llama
 
 public struct Configuration {
-    static let historySize = 5
+    public let historySize: Int
     public let seed: Int
     public let topK: Int
     public let topP: Float
@@ -41,6 +41,7 @@ public struct Configuration {
                 repeatPenalty: Float = 1.0,
                 addBos: Bool = true,
                 stopTokens: [String] = [],
+                historySize: Int = 5,
                 
                 // Advanced sampler parameters
                 penaltyLastN: Int = 64,
@@ -67,6 +68,7 @@ public struct Configuration {
         self.repeatPenalty = repeatPenalty
         self.stopTokens = stopTokens
         self.addBos = addBos
+        self.historySize = historySize
         
         // Advanced sampler parameters
         self.penaltyLastN = penaltyLastN

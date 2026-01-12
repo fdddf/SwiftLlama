@@ -20,25 +20,35 @@ class ViewModel {
         stopTokens: StopToken.llama
     )
     
+    static let hyMTModel: LLamaModel = .init(
+        modelName: "HY-MT1.5-1.8B-Q4_K_M",
+        stopTokens: StopToken.llama
+    )
+    
     static let llama3model: LLamaModel = .init(
-        modelName: "Llama-3.2-3B-Instruct-Q4_K_L",
+        modelName: "Llama-3.2-3B-Instruct-Q3_K_L",
         stopTokens: StopToken.llama3
     )
     
-    let currentModel = llama3model
+    let currentModel = hyMTModel
     
     init() {
         let path = Bundle.main.path(forResource: currentModel.modelName, ofType: "gguf") ?? ""
         swiftLlama = (try? SwiftLlama(
             modelPath: path,
-            modelConfiguration: .init(stopTokens: currentModel.stopTokens))
+            modelConfiguration: .init(
+                topK: Int(0.6),
+                topP: 1.05,
+                nCTX: 4096,
+                temperature: 0.7,
+            ))
         )!
     }
     
     func run(for userMessage: String) {
         result = ""
         
-        let prompt = Prompt(systemPrompt: "You are a helpful coding AI assistant.",
+        let prompt = Prompt(systemPrompt: "",
                             userMessage: userMessage)
         Task {
             switch usingStream {
