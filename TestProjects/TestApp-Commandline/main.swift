@@ -22,8 +22,7 @@ while true {
     print("Bot:", terminator: " ")
 
     for try await value in await swiftLlama
-        .start(for: .init(type: .llama,
-                          systemPrompt:
+        .start(for: .init(systemPrompt:
                                """
                                 You are a helpful AI assistant!
                                 """,
@@ -33,7 +32,7 @@ while true {
     }
     print("")
 //
-//    let result: String = try await swiftLlama.start(for: .init(type: .mistral, userMessage: userMessage))
+//    let result: String = try await swiftLlama.start(for: .init(userMessage: userMessage))
 //    print(result)
 //    print("")
 }

@@ -13,6 +13,22 @@ public struct Configuration {
     public let stopTokens: [String]
     public let repeatPenalty: Float
     public let addBos: Bool
+    
+    // New properties for advanced samplers
+    public let penaltyLastN: Int
+    public let penaltyFreq: Float
+    public let penaltyPresent: Float
+    public let useMinP: Bool
+    public let minP: Float
+    public let useXTCSampler: Bool
+    public let xtcProbability: Float
+    public let xtcThreshold: Float
+    public let useDRYSampler: Bool
+    public let dryMultiplier: Float
+    public let dryBase: Float
+    public let dryAllowedLength: Int
+    public let dryPenaltyLastN: Int
+    public let drySequenceBreakers: [String]
 
     public init(seed: Int = 1234,
                 topK: Int = 40,
@@ -24,7 +40,23 @@ public struct Configuration {
                 maxTokenCount: Int = 1024,
                 repeatPenalty: Float = 1.0,
                 addBos: Bool = true,
-                stopTokens: [String] = []) {
+                stopTokens: [String] = [],
+                
+                // Advanced sampler parameters
+                penaltyLastN: Int = 64,
+                penaltyFreq: Float = 0.0,
+                penaltyPresent: Float = 0.0,
+                useMinP: Bool = false,
+                minP: Float = 0.05,
+                useXTCSampler: Bool = false,
+                xtcProbability: Float = 0.0,
+                xtcThreshold: Float = 0.1,
+                useDRYSampler: Bool = false,
+                dryMultiplier: Float = 0.0,
+                dryBase: Float = 1.75,
+                dryAllowedLength: Int = 2,
+                dryPenaltyLastN: Int = -1,
+                drySequenceBreakers: [String] = ["\n", ":", "\"", "*"]) {
         self.seed = seed
         self.topK = topK
         self.topP = topP
@@ -35,6 +67,22 @@ public struct Configuration {
         self.repeatPenalty = repeatPenalty
         self.stopTokens = stopTokens
         self.addBos = addBos
+        
+        // Advanced sampler parameters
+        self.penaltyLastN = penaltyLastN
+        self.penaltyFreq = penaltyFreq
+        self.penaltyPresent = penaltyPresent
+        self.useMinP = useMinP
+        self.minP = minP
+        self.useXTCSampler = useXTCSampler
+        self.xtcProbability = xtcProbability
+        self.xtcThreshold = xtcThreshold
+        self.useDRYSampler = useDRYSampler
+        self.dryMultiplier = dryMultiplier
+        self.dryBase = dryBase
+        self.dryAllowedLength = dryAllowedLength
+        self.dryPenaltyLastN = dryPenaltyLastN
+        self.drySequenceBreakers = drySequenceBreakers
     }
 }
 

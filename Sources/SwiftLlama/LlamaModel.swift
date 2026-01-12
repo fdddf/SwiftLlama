@@ -46,28 +46,61 @@ class LlamaModel {
 
         self.sampler = llama_sampler_chain_init(llama_sampler_chain_default_params())
         
-        // Repetition penalty
+        // Add XTC sampler if configuration supports it
+        if configuration.useXTCSampler {
+            llama_sampler_chain_add(
+                sampler,
+                llama_sampler_init_xtc(
+                    configuration.xtcProbability,  // p
+                    configuration.xtcThreshold,    // t
+                    1,                             // min_keep
+                    UInt32(configuration.seed)     // seed
+                )
+            )
+        }
+        
+        // Add DRY sampler if configuration supports it
+        if configuration.useDRYSampler {
+            // Note: llama_sampler_init_dry is not available in the current Swift interface
+            // For now, we'll use a placeholder implementation
+            // A complete implementation would require a more sophisticated approach to handle the string array
+            print("DRY sampler is configured but not currently implemented in this version")
+        }
+
+        // Add repetition penalties
         llama_sampler_chain_add(
             sampler,
             llama_sampler_init_penalties(
-                Int32(64),                        // penalty_last_n
-                configuration.repeatPenalty,     // penalty_repeat (1.05)
-                0.0,                              // penalty_freq
-                0.0                               // penalty_present
+                Int32(configuration.penaltyLastN),           // penalty_last_n
+                configuration.repeatPenalty,                // penalty_repeat
+                configuration.penaltyFreq,                  // penalty_freq
+                configuration.penaltyPresent                // penalty_present
             )
         )
 
-        // Top-K
-        llama_sampler_chain_add(
-            sampler,
-            llama_sampler_init_top_k(Int32(configuration.topK))
-        )
+        // Top-K sampling
+        if configuration.topK > 0 {
+            llama_sampler_chain_add(
+                sampler,
+                llama_sampler_init_top_k(Int32(configuration.topK))
+            )
+        }
 
-        // Top-P
-        llama_sampler_chain_add(
-            sampler,
-            llama_sampler_init_top_p(configuration.topP, 1)
-        )
+        // Top-P sampling
+        if configuration.topP > 0 {
+            llama_sampler_chain_add(
+                sampler,
+                llama_sampler_init_top_p(configuration.topP, 1)
+            )
+        }
+
+        // Minimum P sampling if enabled
+        if configuration.useMinP {
+            llama_sampler_chain_add(
+                sampler,
+                llama_sampler_init_min_p(configuration.minP, 1)
+            )
+        }
 
         // Temperature
         llama_sampler_chain_add(
@@ -254,6 +287,83 @@ class LlamaModel {
         if let mem = llama_get_memory(context) {
             llama_memory_clear(mem, true)
         }
+    }
+    
+    // MARK: - KV Cache Management
+    
+    /// Removes all tokens that belong to the specified sequence and have positions in [p0, p1)
+    /// Returns false if a partial sequence cannot be removed. Removing a whole sequence never fails
+    /// seq_id < 0 : match any sequence
+    /// p0 < 0     : [0,  p1]
+    /// p1 < 0     : [p0, inf)
+    func removeTokens(from seqId: llama_seq_id = -1, startPos: llama_pos = -1, endPos: llama_pos = -1) -> Bool {
+        if let mem = llama_get_memory(context) {
+            return llama_memory_seq_rm(mem, seqId, startPos, endPos)
+        }
+        return false
+    }
+    
+    /// Copy all tokens that belong to the specified sequence to another sequence
+    /// p0 < 0 : [0,  p1]
+    /// p1 < 0 : [p0, inf)
+    func copyTokens(from seqIdSrc: llama_seq_id, to seqIdDst: llama_seq_id, startPos: llama_pos = -1, endPos: llama_pos = -1) {
+        if let mem = llama_get_memory(context) {
+            llama_memory_seq_cp(mem, seqIdSrc, seqIdDst, startPos, endPos)
+        }
+    }
+    
+    /// Removes all tokens that do not belong to the specified sequence
+    func keepTokens(in seqId: llama_seq_id) {
+        if let mem = llama_get_memory(context) {
+            llama_memory_seq_keep(mem, seqId)
+        }
+    }
+    
+    /// Adds relative position "delta" to all tokens that belong to the specified sequence and have positions in [p0, p1)
+    /// p0 < 0 : [0,  p1]
+    /// p1 < 0 : [p0, inf)
+    func addPositionDelta(to seqId: llama_seq_id, startPos: llama_pos = -1, endPos: llama_pos = -1, delta: llama_pos) {
+        if let mem = llama_get_memory(context) {
+            llama_memory_seq_add(mem, seqId, startPos, endPos, delta)
+        }
+    }
+    
+    /// Integer division of the positions by factor of `d > 1`
+    /// p0 < 0 : [0,  p1]
+    /// p1 < 0 : [p0, inf)
+    func dividePositions(in seqId: llama_seq_id, startPos: llama_pos = -1, endPos: llama_pos = -1, factor: Int32) {
+        if let mem = llama_get_memory(context) {
+            llama_memory_seq_div(mem, seqId, startPos, endPos, factor)
+        }
+    }
+    
+    /// Returns the smallest position present in the memory for the specified sequence
+    /// This is typically non-zero only for SWA caches
+    /// Note that all positions in the range [pos_min, pos_max] are guaranteed to be present in the memory
+    /// Return -1 if the sequence is empty
+    func getPositionMin(for seqId: llama_seq_id) -> llama_pos {
+        if let mem = llama_get_memory(context) {
+            return llama_memory_seq_pos_min(mem, seqId)
+        }
+        return -1
+    }
+    
+    /// Returns the largest position present in the memory for the specified sequence
+    /// Note that all positions in the range [pos_min, pos_max] are guaranteed to be present in the memory
+    /// Return -1 if the sequence is empty
+    func getPositionMax(for seqId: llama_seq_id) -> llama_pos {
+        if let mem = llama_get_memory(context) {
+            return llama_memory_seq_pos_max(mem, seqId)
+        }
+        return -1
+    }
+    
+    /// Check if the memory supports shifting
+    func canMemoryShift() -> Bool {
+        if let mem = llama_get_memory(context) {
+            return llama_memory_can_shift(mem)
+        }
+        return false
     }
 
     deinit {

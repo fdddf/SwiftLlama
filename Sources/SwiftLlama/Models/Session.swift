@@ -20,8 +20,7 @@ struct Session {
     }
 
     var sessionPrompt: Prompt {
-        Prompt(type: lastPrompt.type,
-               systemPrompt: lastPrompt.systemPrompt,
+        Prompt(systemPrompt: lastPrompt.systemPrompt,
                userMessage: lastPrompt.userMessage,
                history: history)
     }

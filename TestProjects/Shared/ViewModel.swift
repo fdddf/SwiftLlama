@@ -12,19 +12,16 @@ class ViewModel {
     
     struct LLamaModel {
         let modelName: String
-        let type: Prompt.`Type`
         let stopTokens: [String]
     }
     
     static let llama2model: LLamaModel = .init(
         modelName: "llama-2-7b.Q4_K_M",
-        type: .llama,
         stopTokens: StopToken.llama
     )
     
     static let llama3model: LLamaModel = .init(
         modelName: "Llama-3.2-3B-Instruct-Q4_K_L",
-        type: .llama3,
         stopTokens: StopToken.llama3
     )
     
@@ -41,8 +38,7 @@ class ViewModel {
     func run(for userMessage: String) {
         result = ""
         
-        let prompt = Prompt(type: currentModel.type,
-                            systemPrompt: "You are a helpful coding AI assistant.",
+        let prompt = Prompt(systemPrompt: "You are a helpful coding AI assistant.",
                             userMessage: userMessage)
         Task {
             switch usingStream {
