@@ -5,7 +5,7 @@ and the purpose of this repo is to provide a swiftier API for Swift developers.
 
 ## Install
 
-    .package(url: "https://github.com/ShenghaiWang/SwiftLlama.git", from: "0.4.2")
+    .package(url: "https://github.com/fdddf/SwiftLlama.git", from: "0.4.2")
 
 ## Usage
 

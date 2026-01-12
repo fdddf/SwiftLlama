@@ -94,7 +94,7 @@ class LlamaModel {
 
     func start(for prompt: Prompt) throws {
         ended = false
-        tokens = tokenize(text: prompt.prompt, addBos: configuration.addBos)
+        tokens = tokenize(text: formatPromptWithModelTemplate(prompt: prompt), addBos: configuration.addBos)
 
         batch.clear()
         tokens.enumerated().forEach { index, token in
@@ -161,14 +161,92 @@ class LlamaModel {
     }
 
     private func tokenize(text: String, addBos: Bool) -> [Token] {
-        let utf8Count = text.utf8.count
+        // The text parameter here is already formatted by the Prompt struct
+        // We can format it further using the model's chat template if available
+        let processedText = formatChatTemplateIfNeeded(text: text)
+        
+        let utf8Count = processedText.utf8.count
         let n_tokens = utf8Count + (addBos ? 1 : 0) + 1
 
         return Array(unsafeUninitializedCapacity: n_tokens) { buffer, initializedCount in
             initializedCount = Int(
-                llama_tokenize(vocab, text, Int32(utf8Count), buffer.baseAddress, Int32(n_tokens), addBos, false)
+                llama_tokenize(vocab, processedText, Int32(utf8Count), buffer.baseAddress, Int32(n_tokens), addBos, false)
             )
         }
+    }
+    
+    private func formatPromptWithModelTemplate(prompt: Prompt) -> String {
+        // Get the model's default chat template by passing NULL as the name
+        // According to the header: if name is NULL, returns the default chat template
+        let templatePtr = llama_model_chat_template(model, nil)
+        
+        guard let templatePtr = templatePtr else {
+            // If no template is available, fall back to the current prompt formatting
+            return prompt.prompt
+        }
+        
+        let templateString = String(cString: templatePtr)
+        
+        // Prepare the chat messages for the template based on the prompt data
+        var messages: [llama_chat_message] = []
+        
+        // Add system message if system prompt is not empty
+        if !prompt.systemPrompt.isEmpty {
+            messages.append(llama_chat_message(role: "system", content: prompt.systemPrompt))
+        }
+        
+        // Add conversation history
+        for chat in prompt.history.suffix(configuration.historySize) {
+            // We need to convert the Chat object to the appropriate format
+            // Chat struct has 'user' and 'bot' properties
+            messages.append(llama_chat_message(role: "user", content: chat.user))
+            if !chat.bot.isEmpty {
+                messages.append(llama_chat_message(role: "assistant", content: chat.bot))
+            }
+        }
+        
+        // Add the current user message
+        messages.append(llama_chat_message(role: "user", content: prompt.userMessage))
+        
+        // Calculate buffer size needed for the formatted result
+        // According to the llama.h documentation, we should allocate 2 * total characters of all messages
+        let totalCharCount = messages.reduce(0) { $0 + $1.content.utf8.count }
+        let estimatedSize = 2 * totalCharCount
+        
+        // Create a buffer for the formatted result
+        var buffer = [CChar](repeating: 0, count: estimatedSize)
+        
+        // Apply the chat template
+        let resultLength = llama_chat_apply_template(
+            templateString,
+            messages,
+            Int32(messages.count),  // n_msg: number of messages
+            false,  // add_ass: don't add assistant response
+            &buffer,
+            Int32(estimatedSize)
+        )
+        
+        // If the result is larger than our buffer, reallocate and try again
+        if resultLength > Int32(estimatedSize) {
+            buffer = [CChar](repeating: 0, count: Int(resultLength))
+            _ = llama_chat_apply_template(
+                templateString,
+                messages,
+                Int32(messages.count),  // n_msg: number of messages
+                false,  // add_ass: don't add assistant response
+                &buffer,
+                resultLength
+            )
+        }
+        
+        // Convert the result to a Swift string
+        return String(cString: buffer)
+    }
+    
+    private func formatChatTemplateIfNeeded(text: String) -> String {
+        // This function is for formatting individual text pieces using the chat template
+        // when they are part of a larger conversation
+        return text
     }
 
     func clear() {
