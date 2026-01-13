@@ -3,15 +3,11 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		164F8A0D2F10C1BD00D8B49E /* SwiftLlama in Frameworks */ = {isa = PBXBuildFile; productRef = 164F8A0C2F10C1BD00D8B49E /* SwiftLlama */; };
-		164F8C4F2F14C89A00D8B49E /* Llama-3.2-3B-Instruct-Q3_K_L.gguf in Resources */ = {isa = PBXBuildFile; fileRef = 164F8C4D2F14C89A00D8B49E /* Llama-3.2-3B-Instruct-Q3_K_L.gguf */; };
-		164F8C502F14C89A00D8B49E /* HY-MT1.5-1.8B-Q4_K_M.gguf in Resources */ = {isa = PBXBuildFile; fileRef = 164F8C4C2F14C89A00D8B49E /* HY-MT1.5-1.8B-Q4_K_M.gguf */; };
-		164F8C512F14C89A00D8B49E /* Llama-3.2-3B-Instruct-Q3_K_L.gguf in Resources */ = {isa = PBXBuildFile; fileRef = 164F8C4D2F14C89A00D8B49E /* Llama-3.2-3B-Instruct-Q3_K_L.gguf */; };
-		164F8C522F14C89A00D8B49E /* HY-MT1.5-1.8B-Q4_K_M.gguf in Resources */ = {isa = PBXBuildFile; fileRef = 164F8C4C2F14C89A00D8B49E /* HY-MT1.5-1.8B-Q4_K_M.gguf */; };
 		4B0B057A2BE5C451002BC7AF /* TestApp_MacosApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0B05792BE5C451002BC7AF /* TestApp_MacosApp.swift */; };
 		4B0B057E2BE5C452002BC7AF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4B0B057D2BE5C452002BC7AF /* Assets.xcassets */; };
 		4B0B05812BE5C452002BC7AF /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4B0B05802BE5C452002BC7AF /* Preview Assets.xcassets */; };
@@ -40,8 +36,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		164F8C4C2F14C89A00D8B49E /* HY-MT1.5-1.8B-Q4_K_M.gguf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "HY-MT1.5-1.8B-Q4_K_M.gguf"; sourceTree = "<group>"; };
-		164F8C4D2F14C89A00D8B49E /* Llama-3.2-3B-Instruct-Q3_K_L.gguf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Llama-3.2-3B-Instruct-Q3_K_L.gguf"; sourceTree = "<group>"; };
 		4B0B055A2BE5B44E002BC7AF /* TestApp-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TestApp-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B0B05772BE5C451002BC7AF /* TestApp-Macos.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TestApp-Macos.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B0B05792BE5C451002BC7AF /* TestApp_MacosApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestApp_MacosApp.swift; sourceTree = "<group>"; };
@@ -57,6 +51,29 @@
 		4BEE1DB32BE70024001CE949 /* swiftllama */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = swiftllama; sourceTree = BUILT_PRODUCTS_DIR; };
 		4BEE1DB52BE70024001CE949 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		16C05D062F1699A200C6914A /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"HY-MT1.5-1.8B-Q4_K_M.gguf",
+				"Llama-3.2-3B-Instruct-Q3_K_L.gguf",
+			);
+			target = 4B0B05592BE5B44E002BC7AF /* TestApp-iOS */;
+		};
+		16C05D092F1699AB00C6914A /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"HY-MT1.5-1.8B-Q4_K_M.gguf",
+				"Llama-3.2-3B-Instruct-Q3_K_L.gguf",
+			);
+			target = 4B0B05762BE5C451002BC7AF /* TestApp-Macos */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		16C05D032F16993400C6914A /* Models */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (16C05D062F1699A200C6914A /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 16C05D092F1699AB00C6914A /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); name = Models; path = ../Models; sourceTree = SOURCE_ROOT; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		4B0B05572BE5B44E002BC7AF /* Frameworks */ = {
@@ -93,19 +110,10 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		164F8C4E2F14C89A00D8B49E /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				164F8C4C2F14C89A00D8B49E /* HY-MT1.5-1.8B-Q4_K_M.gguf */,
-				164F8C4D2F14C89A00D8B49E /* Llama-3.2-3B-Instruct-Q3_K_L.gguf */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
 		4B0B05512BE5B44E002BC7AF = {
 			isa = PBXGroup;
 			children = (
-				164F8C4E2F14C89A00D8B49E /* Models */,
+				16C05D032F16993400C6914A /* Models */,
 				4B51A47B2BE7449700F65BFC /* README.md */,
 				4BB1E3E42BE646BB00F1D21A /* Shared */,
 				4B1334F32BE5C4AC0020AB8E /* TestApp-iOS */,
@@ -292,8 +300,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				164F8C512F14C89A00D8B49E /* Llama-3.2-3B-Instruct-Q3_K_L.gguf in Resources */,
-				164F8C522F14C89A00D8B49E /* HY-MT1.5-1.8B-Q4_K_M.gguf in Resources */,
 				4B1334FC2BE5C4AC0020AB8E /* Preview Assets.xcassets in Resources */,
 				4B1334FA2BE5C4AC0020AB8E /* Assets.xcassets in Resources */,
 			);
@@ -303,8 +309,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				164F8C4F2F14C89A00D8B49E /* Llama-3.2-3B-Instruct-Q3_K_L.gguf in Resources */,
-				164F8C502F14C89A00D8B49E /* HY-MT1.5-1.8B-Q4_K_M.gguf in Resources */,
 				4B0B05812BE5C452002BC7AF /* Preview Assets.xcassets in Resources */,
 				4B0B057E2BE5C452002BC7AF /* Assets.xcassets in Resources */,
 			);

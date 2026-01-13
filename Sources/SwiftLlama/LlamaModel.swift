@@ -135,7 +135,7 @@ class LlamaModel {
             throw SwiftLlamaError.others("Formatted prompt is empty")
         }
         
-        tokens = tokenize(text: formattedText, addBos: false)
+        tokens = tokenize(text: formattedText, addBos: true)
         
         // Check if we have tokens
         guard !tokens.isEmpty else {
@@ -217,7 +217,8 @@ class LlamaModel {
 
         return Array(unsafeUninitializedCapacity: n_tokens) { buffer, initializedCount in
             initializedCount = Int(
-                llama_tokenize(vocab, processedText, Int32(utf8Count), buffer.baseAddress, Int32(n_tokens), addBos, false)
+                // Enable parsing special tokens so model chat templates (e.g., Hunyuan) tokenize correctly.
+                llama_tokenize(vocab, processedText, Int32(utf8Count), buffer.baseAddress, Int32(n_tokens), addBos, true)
             )
         }
     }
@@ -234,8 +235,6 @@ class LlamaModel {
                 return "<|user|>\n\(prompt.userMessage)\n<|assistant|>\n"
             }
         }
-
-        let templateString = String(cString: templatePtr)
 
         // We must keep all C strings alive for the duration of llama_chat_apply_template.
         // Using String.cString(using:) returns temporary storage which becomes invalid.
@@ -296,21 +295,21 @@ class LlamaModel {
 
         func applyTemplate(into out: inout [CChar]) -> Int32 {
             let outCount = Int32(out.count)
-            return templateString.withCString { tmpl in
-                return messages.withUnsafeBufferPointer { msgs in
-                    return out.withUnsafeMutableBufferPointer { outBuf in
-                        guard let outBase = outBuf.baseAddress else { return 0 }
-                        return llama_chat_apply_template(
-                            tmpl,
-                            msgs.baseAddress,
-                            Int(Int32(msgs.count)),
-                            true,  // add_ass: add assistant prefix for the model to complete
-                            outBase,
-                            outCount
-                        )
-                    }
+            
+            return messages.withUnsafeBufferPointer { msgs in
+                return out.withUnsafeMutableBufferPointer { outBuf in
+                    guard let outBase = outBuf.baseAddress else { return 0 }
+                    return llama_chat_apply_template(
+                        templatePtr,
+                        msgs.baseAddress,
+                        Int(Int32(msgs.count)),
+                        true,  // add_ass: add assistant prefix for the model to complete
+                        outBase,
+                        outCount
+                    )
                 }
             }
+            
         }
 
         var resultLength = applyTemplate(into: &buffer)
