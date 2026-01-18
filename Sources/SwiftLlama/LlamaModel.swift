@@ -11,6 +11,7 @@ class LlamaModel {
     private var tokens: [Token]
     private var generatedTokenAccount: Int32 = 0
     private var ended = false
+    private var pendingUTF8Bytes: [UInt8] = []
 
     var shouldContinue: Bool {
         generatedTokenAccount < configuration.maxTokenCount && !ended
@@ -127,6 +128,7 @@ class LlamaModel {
 
     func start(for prompt: Prompt) throws {
         ended = false
+        pendingUTF8Bytes.removeAll()
         
         let formattedText = formatPromptWithModelTemplate(prompt: prompt)
         
@@ -180,16 +182,34 @@ class LlamaModel {
 
     /// Convert a sampled token to a Swift String (valid UTF-8, no interleaved \0 bytes).
     private func tokenToString(token: llama_token) -> String {
+        let bytes = tokenToBytes(token: token)
+        guard !bytes.isEmpty else { return "" }
+
+        pendingUTF8Bytes.append(contentsOf: bytes)
+
+        let maxTail = min(3, pendingUTF8Bytes.count)
+        for tail in 0...maxTail {
+            let count = pendingUTF8Bytes.count - tail
+            guard count > 0 else { continue }
+
+            if let decoded = String(bytes: pendingUTF8Bytes.prefix(count), encoding: .utf8) {
+                pendingUTF8Bytes.removeFirst(count)
+                return decoded
+            }
+        }
+
+        return ""
+    }
+
+    private func tokenToBytes(token: llama_token) -> [UInt8] {
         var cap: Int32 = 32
         var buf = [CChar](repeating: 0, count: Int(cap))
 
-        // First attempt
         var written: Int32 = buf.withUnsafeMutableBufferPointer { p in
             guard let base = p.baseAddress else { return 0 }
             return Int32(llama_token_to_piece(vocab, token, base, cap, 0, false))
         }
 
-        // If negative, allocate required size and retry
         if written < 0 {
             cap = -written
             buf = [CChar](repeating: 0, count: Int(cap))
@@ -200,11 +220,9 @@ class LlamaModel {
         }
 
         let count = Int(max(0, written))
-        if count == 0 { return "" }
+        if count == 0 { return [] }
 
-        // Decode exact byte count (no trailing NUL included)
-        let bytes: [UInt8] = buf.prefix(count).map { UInt8(bitPattern: $0) }
-        return String(decoding: bytes, as: UTF8.self)
+        return buf.prefix(count).map { UInt8(bitPattern: $0) }
     }
 
     private func tokenize(text: String, addBos: Bool) -> [Token] {
@@ -338,6 +356,7 @@ class LlamaModel {
 
     func clear() {
         tokens.removeAll()
+        pendingUTF8Bytes.removeAll()
         if let mem = llama_get_memory(context) {
             llama_memory_clear(mem, true)
         }
