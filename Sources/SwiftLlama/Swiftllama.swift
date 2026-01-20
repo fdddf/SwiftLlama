@@ -202,4 +202,21 @@ public class SwiftLlama {
     public func canMemoryShift() -> Bool {
         return model.canMemoryShift()
     }
+    
+    @SwiftLlamaActor
+    public func calculateTokenCount(
+        for prompt: Prompt,
+        sessionSupport: Bool = false,
+        addBos: Bool = true
+    ) throws -> Int {
+        let preparedPrompt = prepare(
+            sessionSupport: sessionSupport,
+            for: prompt
+        )
+
+        return try model.calculateTokenCount(
+            for: preparedPrompt,
+            addBos: addBos
+        )
+    }
 }

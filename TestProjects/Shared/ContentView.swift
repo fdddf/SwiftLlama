@@ -16,6 +16,10 @@ struct ContentView: View {
                     viewModel.run(for: prompt)
                 }
             Text(viewModel.result)
+            Text("Tokens: \(viewModel.tokenCount)")
+                .onChange(of: prompt) { _, newValue in
+                    viewModel.updateTokenCount(for: newValue)
+                }
             Spacer()
         }
         .padding()

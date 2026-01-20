@@ -9,6 +9,8 @@ class ViewModel {
     var result = ""
     var usingStream = true
     private var cancallable: Set<AnyCancellable> = []
+    private var tokenTask: Task<Void, Never>?
+    var tokenCount: Int = 0
     
     struct LLamaModel {
         let modelName: String
@@ -63,6 +65,33 @@ class ViewModel {
                     } receiveValue: {[weak self] value in
                         self?.result += value
                     }.store(in: &cancallable)
+            }
+        }
+    }
+    
+    
+    func updateTokenCount(for userMessage: String) {
+        // Cancel any in-flight token count
+        tokenTask?.cancel()
+        
+        let prompt = Prompt(systemPrompt: "", userMessage: userMessage)
+        
+        tokenTask = Task {
+            // ⏳ Debounce delay (adjust as needed)
+            try? await Task.sleep(nanoseconds: 150_000_000) // 150 ms
+            
+            // Stop if cancelled during debounce
+            guard !Task.isCancelled else { return }
+            
+            do {
+                let count = try await swiftLlama.calculateTokenCount(for: prompt)
+                
+                // Only update UI if still relevant
+                guard !Task.isCancelled else { return }
+                tokenCount = count
+            } catch {
+                guard !Task.isCancelled else { return }
+                tokenCount = 0
             }
         }
     }

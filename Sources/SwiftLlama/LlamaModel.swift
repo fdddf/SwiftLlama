@@ -446,3 +446,44 @@ class LlamaModel {
         llama_backend_free()
     }
 }
+
+
+extension LlamaModel {
+    /// Calculates the exact number of tokens llama.cpp will consume for a prompt
+    /// including chat template, special tokens, and optional BOS.
+    func calculateTokenCount(
+        for prompt: Prompt,
+        addBos: Bool
+    ) throws -> Int {
+        let formattedText = formatPromptWithModelTemplate(prompt: prompt)
+
+        guard !formattedText.isEmpty else {
+            return 0
+        }
+
+        return tokenizeCount(text: formattedText, addBos: addBos)
+    }
+    
+    private func tokenizeCount(text: String, addBos: Bool) -> Int {
+        let utf8Count = text.utf8.count
+
+        // llama.cpp-safe upper bound
+        let maxTokens = utf8Count + 4 + (addBos ? 1 : 0)
+
+        // Allocate a temporary buffer
+        let tokens = UnsafeMutablePointer<llama_token>.allocate(capacity: maxTokens)
+        defer { tokens.deallocate() }
+
+        let count = llama_tokenize(
+            vocab,
+            text,
+            Int32(utf8Count),
+            tokens,
+            Int32(maxTokens),
+            addBos,
+            true
+        )
+
+        return Int(count)
+    }
+}
